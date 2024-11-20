@@ -121,23 +121,29 @@ export default function Sales() {
   };
 
   const updateOrder = async () => {
+    // Check if the order is not a draft
     if (editingOrder.status !== "Черновик") {
+      // Validate changes for non-draft orders
       if (
         editingOrder.customer_id !== editingOrder.originalCustomerId ||
         editingOrder.product_id !== editingOrder.originalProductId ||
-        editingOrder.quantity !== editingOrder.originalQuantity ||
         editingOrder.order_date !== editingOrder.originalOrderDate
       ) {
         toast({
           title: "Ошибка",
           description:
-            "Невозможно изменить клиента, вид, количество или дату регистрации для согласованных заказов",
+            "Невозможно изменить клиента, вид или дату регистрации для согласованных заказов",
           variant: "destructive",
         });
         return;
       }
     }
 
+    // Allow quantity changes for all orders
+    const quantityChanged =
+      editingOrder.quantity !== editingOrder.originalQuantity;
+
+    // Check status promotion rules
     if (
       editingOrder.status !== editingOrder.originalStatus &&
       !canPromoteOrder(editingOrder)
@@ -151,6 +157,7 @@ export default function Sales() {
       return;
     }
 
+    // Proceed with update
     await executeQuery(
       "UPDATE orders SET customer_id = $1, product_id = $2, quantity = $3, order_date = $4, completion_date = $5, status = $6, notes = $7 WHERE id = $8",
       [
@@ -164,9 +171,25 @@ export default function Sales() {
         editingOrder.id,
       ]
     );
+
+    // Prepare toast message
+    const messages = [];
+    if (quantityChanged) {
+      messages.push("Количество изменено");
+    }
+    if (editingOrder.status !== editingOrder.originalStatus) {
+      messages.push(`Статус изменен на "${editingOrder.status}"`);
+    }
+
+    // Show toast with combined message
+    if (messages.length > 0) {
+      toast({
+        description: messages.join(". "),
+      });
+    }
+
     setIsEditOrderDialogOpen(false);
     fetchOrders();
-    toast({ description: "Заказ обновлен" });
   };
 
   const deleteOrder = async (id) => {
