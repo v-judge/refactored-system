@@ -34,6 +34,7 @@ import { PencilIcon, TrashIcon, XCircleIcon } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 export default function Sales() {
+  const [activeTab, setActiveTab] = useState("customers");
   const [customers, setCustomers] = useState([]);
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
@@ -52,10 +53,19 @@ export default function Sales() {
   const [isEditOrderDialogOpen, setIsEditOrderDialogOpen] = useState(false);
 
   useEffect(() => {
+    const savedTab = localStorage.getItem("activeTab");
+    if (savedTab) {
+      setActiveTab(savedTab);
+    }
     fetchCustomers();
     fetchOrders();
     fetchProducts();
   }, []);
+
+  useEffect(() => {
+    // Save active tab to localStorage whenever it changes
+    localStorage.setItem("activeTab", activeTab);
+  }, [activeTab]);
 
   const fetchCustomers = async () => {
     const fetchedCustomers = await selectQuery("SELECT * FROM customers");
@@ -94,6 +104,35 @@ export default function Sales() {
   };
 
   const addOrder = async () => {
+    const today = new Date();
+    const completionDate = new Date(newOrder.completionDate);
+
+    if (!newOrder.customerId) {
+      toast({
+        title: "Ошибка",
+        description: "Клиент - Неверная ссылка на базу данных.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!newOrder.productId) {
+      toast({
+        title: "Ошибка",
+        description: "Вид продукта - Неверная ссылка на базу данных.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (completionDate <= today) {
+      toast({
+        title: "Ошибка",
+        description: "Дедлайн должен быть позже текущей даты.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+
     await executeQuery(
       "INSERT INTO orders (customer_id, product_id, quantity, order_date, completion_date, status, notes) VALUES ($1, $2, $3, $4, $5, $6, $7)",
       [
@@ -121,6 +160,17 @@ export default function Sales() {
   };
 
   const updateOrder = async () => {
+    const today = new Date();
+    const completionDate = new Date(editingOrder.completion_date);
+
+    if (completionDate <= today) {
+      toast({
+        title: "Ошибка",
+        description: "Дедлайн должен быть позже текущей даты.",
+        variant: "destructive",
+      });
+      return;
+    }
     // Check if the order is not a draft
     if (editingOrder.status !== "Черновик") {
       // Validate changes for non-draft orders
@@ -236,19 +286,16 @@ export default function Sales() {
       order.customer_id &&
       order.product_id &&
       order.quantity &&
-      order.order_date
+      order.order_date &&
+      order.completion_date
     );
-  };
-
-  const clearDate = (field) => {
-    setEditingOrder((prev) => ({ ...prev, [field]: null }));
   };
 
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-3xl font-bold mb-6">Коммерческая служба</h1>
 
-      <Tabs defaultValue="customers" className="w-full">
+      <Tabs defaultValue="customers" className="w-full" onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="customers">Клиенты</TabsTrigger>
           <TabsTrigger value="orders">Заказы</TabsTrigger>
@@ -631,15 +678,6 @@ export default function Sales() {
                     className="flex-grow"
                     disabled={editingOrder.status !== "Черновик"}
                   />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => clearDate("order_date")}
-                    disabled={editingOrder.status !== "Черновик"}
-                  >
-                    <XCircleIcon className="h-4 w-4" />
-                  </Button>
                 </div>
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
@@ -660,15 +698,6 @@ export default function Sales() {
                     className="flex-grow"
                     disabled={editingOrder.status !== "Черновик"}
                   />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => clearDate("completion_date")}
-                    disabled={editingOrder.status !== "Черновик"}
-                  >
-                    <XCircleIcon className="h-4 w-4" />
-                  </Button>
                 </div>
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
