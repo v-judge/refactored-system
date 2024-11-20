@@ -21,20 +21,20 @@ export async function selectQuery(query: string, params: any[] = []) {
 }
 
 async function initializeDatabase() {
-    // Pre-add products
-    const products = [
-        {name: 'Сырые пиломатериалы'},
-        {name: 'Сухие пиломатериалы'},
-        {name: 'Строганные доски'},
-        {name: 'Рейки'},
-        {name: 'Брус'},
-        {name: 'Пеллеты'},
-    ];
+    // // Pre-add products
+    // const products = [
+    //     {name: 'Сырые пиломатериалы'},
+    //     {name: 'Сухие пиломатериалы'},
+    //     {name: 'Строганные доски'},
+    //     {name: 'Рейки'},
+    //     {name: 'Брус'},
+    //     {name: 'Пеллеты'},
+    // ];
 
-    for (const product of products) {
-        await executeQuery(
-            'INSERT OR IGNORE INTO products (name) VALUES ($1)',
-            [product.name]
-        );
-    }
+    // for (const product of products) {
+    //     await executeQuery(
+    //         'INSERT OR IGNORE INTO products (name) VALUES ($1)',
+    //         [product.name]
+    //     );
+    // }
 }

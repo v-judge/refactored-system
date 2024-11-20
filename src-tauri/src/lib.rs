@@ -12,6 +12,14 @@ pub fn run() {
               name TEXT UNIQUE NOT NULL
             );
 
+            INSERT INTO products (name) VALUES
+            ('Сырые пиломатериалы'),
+            ('Сухие пиломатериалы'),
+            ('Строганные доски'),
+            ('Рейки'),
+            ('Брус'),
+            ('Пеллеты');
+
             CREATE TABLE customers (
               id INTEGER PRIMARY KEY AUTOINCREMENT,
               name TEXT NOT NULL
@@ -21,14 +29,15 @@ pub fn run() {
               id INTEGER PRIMARY KEY AUTOINCREMENT,
               customer_id INTEGER,
               product_id INTEGER,
-              quantity INTEGER NOT NULL,
-              order_date TEXT NOT NULL,
+              quantity INTEGER,
+              order_date TEXT,
               completion_date TEXT,
-              status TEXT NOT NULL,
+              status TEXT,
               notes TEXT,
               FOREIGN KEY (customer_id) REFERENCES customers(id),
               FOREIGN KEY (product_id) REFERENCES products(id)
             );
+            
           "#,
           kind: MigrationKind::Up,
         },
