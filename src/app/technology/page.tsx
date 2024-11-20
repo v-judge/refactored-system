@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {Trash2} from "lucide-react";
 
 export default function Technology() {
     const [products, setProducts] = useState([])
-    const [newProduct, setNewProduct] = useState({ name: '', type: '' })
+    const [newProduct, setNewProduct] = useState({ name: '' })
 
     useEffect(() => {
         fetchProducts()
@@ -22,10 +23,10 @@ export default function Technology() {
 
     const addProduct = async () => {
         await executeQuery(
-            'INSERT INTO products (name, type) VALUES ($1, $2)',
-            [newProduct.name, newProduct.type]
+            'INSERT INTO products (name) VALUES ($1)',
+            [newProduct.name]
         )
-        setNewProduct({ name: '', type: '' })
+        setNewProduct({ name: '' })
         fetchProducts()
     }
 
@@ -38,48 +39,38 @@ export default function Technology() {
 
     return (
         <div>
-            <h1 className="text-2xl font-bold mb-4">Technology Department</h1>
+            <h1 className="text-2xl font-bold mb-4">Служба технолога</h1>
 
-            <h2 className="text-xl font-semibold mt-6 mb-2">Products</h2>
+            <h2 className="text-xl font-semibold mt-6 mb-2">Продукты</h2>
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Actions</TableHead>
+                        <TableHead>Наименование</TableHead>
+                        <TableHead>Удалить</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {products.map((product) => (
                         <TableRow key={product.id}>
                             <TableCell>{product.name}</TableCell>
-                            <TableCell>{product.type}</TableCell>
                             <TableCell>
-                                <Button onClick={() => deleteProduct(product.id)} variant="destructive">Delete</Button>
+                                <Button onClick={() => deleteProduct(product.id)} variant="destructive">
+                                    <Trash2/>
+                                </Button>
                             </TableCell>
                         </TableRow>
                     ))}
                 </TableBody>
             </Table>
 
-            <h3 className="text-lg font-semibold mt-4 mb-2">Add New Product</h3>
+            <h3 className="text-lg font-semibold mt-4 mb-2">Добавить продукт</h3>
             <div className="flex space-x-2 mb-4">
                 <Input
-                    placeholder="Name"
+                    placeholder="Наименование"
                     value={newProduct.name}
                     onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
                 />
-                <Select onValueChange={(value) => setNewProduct({ ...newProduct, type: value })}>
-                    <SelectTrigger>
-                        <SelectValue placeholder="Select Product Type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {productTypes.map((type) => (
-                            <SelectItem key={type} value={type}>{type}</SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-                <Button onClick={addProduct}>Add Product</Button>
+                <Button onClick={addProduct}>Добавить</Button>
             </div>
         </div>
     )

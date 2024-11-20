@@ -7,6 +7,13 @@ import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectSeparator } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command"
+import { PopoverTrigger, Popover, PopoverContent } from "@/components/ui/popover"
+import {Check, ChevronsUpDown, DeleteIcon, LucideDelete, Trash2} from 'lucide-react'
+import { cn } from "@/lib/utils"
 
 export default function Sales() {
     const [customers, setCustomers] = useState([])
@@ -14,12 +21,22 @@ export default function Sales() {
     const [products, setProducts] = useState([])
     const [newCustomer, setNewCustomer] = useState({ name: '' })
     const [newOrder, setNewOrder] = useState({ customerId: '', productId: '', quantity: '', orderDate: '', completionDate: '', notes: '' })
+    const [newProduct, setNewProduct] = useState({ name: '' })
+    const [openCustomer, setOpenCustomer] = useState(false)
+    const [openProduct, setOpenProduct] = useState(false)
+    const [filteredCustomers, setFilteredCustomers] = useState([])
+    const [filteredProducts, setFilteredProducts] = useState([])
 
     useEffect(() => {
         fetchCustomers()
         fetchOrders()
         fetchProducts()
     }, [])
+
+    useEffect(() => {
+        setFilteredCustomers(customers)
+        setFilteredProducts(products)
+    }, [customers, products])
 
     const fetchCustomers = async () => {
         const fetchedCustomers = await selectQuery('SELECT * FROM customers')
@@ -72,142 +89,234 @@ export default function Sales() {
         fetchOrders()
     }
 
-    const productTypes = [
-        { value: 'raw_lumber', label: 'Raw Lumber' },
-        { value: 'dried_lumber', label: 'Dried Lumber' },
-        { value: 'separator', label: '---' },
-        { value: 'planed_boards', label: 'Planed Boards' },
-        { value: 'laths', label: 'Laths' },
-        { value: 'beams', label: 'Beams' },
-        { value: 'pellets', label: 'Pellets' },
-    ]
+    const addProduct = async () => {
+        await executeQuery(
+            'INSERT INTO products (name, type) VALUES ($1, $2)',
+            [newProduct.name, newProduct.type]
+        )
+        setNewProduct({ name: '' })
+        fetchProducts()
+    }
 
     return (
-        <div>
-            <h1 className="text-2xl font-bold mb-4">Sales Department</h1>
+        <div className="container mx-auto p-4">
+            <h1 className="text-3xl font-bold mb-6">Коммерческая служба</h1>
 
             <Tabs defaultValue="customers" className="w-full">
-                <TabsList>
-                    <TabsTrigger value="customers">Customers</TabsTrigger>
-                    <TabsTrigger value="orders">Orders</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="customers">Клиенты</TabsTrigger>
+                    <TabsTrigger value="orders">Заказы</TabsTrigger>
                 </TabsList>
                 <TabsContent value="customers">
-                    <h2 className="text-xl font-semibold mt-6 mb-2">Customers</h2>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Name</TableHead>
-                                <TableHead>Actions</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {customers.map((customer) => (
-                                <TableRow key={customer.id}>
-                                    <TableCell>{customer.name}</TableCell>
-                                    <TableCell>
-                                        <Button onClick={() => deleteCustomer(customer.id)} variant="destructive">Delete</Button>
-                                    </TableCell>
+                    <div className="bg-white p-6 rounded-lg shadow-md">
+                        <h2 className="text-2xl font-semibold mb-4">Клиенты</h2>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>ID</TableHead>
+                                    <TableHead>Наименование</TableHead>
+                                    <TableHead>Удалить</TableHead>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {customers.map((customer) => (
+                                    <TableRow key={customer.id}>
+                                        <TableCell>{customer.id}</TableCell>
+                                        <TableCell>{customer.name}</TableCell>
+                                        <TableCell>
+                                            <Button onClick={() => deleteCustomer(customer.id)} variant="destructive" size="sm">
+                                                <Trash2 />
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
 
-                    <h3 className="text-lg font-semibold mt-4 mb-2">Add New Customer</h3>
-                    <div className="flex space-x-2 mb-4">
-                        <Input
-                            placeholder="Name"
-                            value={newCustomer.name}
-                            onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
-                        />
-                        <Button onClick={addCustomer}>Add Customer</Button>
+                        <h3 className="text-xl font-semibold mt-6 mb-4">Добавить Клиента</h3>
+                        <div className="flex space-x-2">
+                            <Input
+                                placeholder="Наименование"
+                                value={newCustomer.name}
+                                onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
+                                className="flex-grow"
+                            />
+                            <Button onClick={addCustomer}>Добавить Клиента</Button>
+                        </div>
                     </div>
                 </TabsContent>
                 <TabsContent value="orders">
-                    <h2 className="text-xl font-semibold mt-6 mb-2">Orders</h2>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Customer</TableHead>
-                                <TableHead>Product</TableHead>
-                                <TableHead>Quantity</TableHead>
-                                <TableHead>Order Date</TableHead>
-                                <TableHead>Completion Date</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>Actions</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {orders.map((order) => (
-                                <TableRow key={order.id}>
-                                    <TableCell>{customers.find(c => c.id === order.customer_id)?.name || 'Unknown'}</TableCell>
-                                    <TableCell>{products.find(p => p.id === order.product_id)?.name || 'Unknown'}</TableCell>
-                                    <TableCell>{order.quantity}</TableCell>
-                                    <TableCell>{order.order_date}</TableCell>
-                                    <TableCell>{order.completion_date}</TableCell>
-                                    <TableCell>{order.status}</TableCell>
-                                    <TableCell>
-                                        <Button onClick={() => updateOrderStatus(order.id, 'AgreedWithClient')} className="mr-2">Agree</Button>
-                                        <Button onClick={() => updateOrderStatus(order.id, 'AcceptedForProduction')} className="mr-2">Accept</Button>
-                                        <Button onClick={() => updateOrderStatus(order.id, 'Completed')} className="mr-2">Complete</Button>
-                                        <Button onClick={() => deleteOrder(order.id)} variant="destructive">Delete</Button>
-                                    </TableCell>
+                    <div className="bg-white p-6 rounded-lg shadow-md">
+                        <h2 className="text-2xl font-semibold mb-4">Заказы</h2>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>ID заказа</TableHead>
+                                    <TableHead>Клиент</TableHead>
+                                    <TableHead>Продукт</TableHead>
+                                    <TableHead>Количество</TableHead>
+                                    <TableHead>Дата заказа</TableHead>
+                                    <TableHead>Дедлайн</TableHead>
+                                    <TableHead>Статус</TableHead>
+                                    <TableHead>Удалить</TableHead>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {orders.map((order) => (
+                                    <TableRow key={order.id}>
+                                        <TableCell>{order.id}</TableCell>
+                                        <TableCell>{customers.find(c => c.id === order.customer_id)?.name || 'Unknown'}</TableCell>
+                                        <TableCell>{products.find(p => p.id === order.product_id)?.name || 'Unknown'}</TableCell>
+                                        <TableCell>{order.quantity}</TableCell>
+                                        <TableCell>{order.order_date}</TableCell>
+                                        <TableCell>{order.completion_date}</TableCell>
+                                        <TableCell>{order.status}</TableCell>
+                                        <TableCell>
+                                            <div className="flex space-x-2">
+                                                <Button onClick={() => updateOrderStatus(order.id, 'AgreedWithClient')} size="sm">Agree</Button>
+                                                <Button onClick={() => updateOrderStatus(order.id, 'AcceptedForProduction')} size="sm">Accept</Button>
+                                                <Button onClick={() => updateOrderStatus(order.id, 'Completed')} size="sm">Complete</Button>
+                                                <Button onClick={() => deleteOrder(order.id)} variant="destructive" size="sm">Delete</Button>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
 
-                    <h3 className="text-lg font-semibold mt-4 mb-2">Add New Order</h3>
-                    <div className="grid grid-cols-2 gap-4 mb-4">
-                        <Select onValueChange={(value) => setNewOrder({ ...newOrder, customerId: value })}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select Customer" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {customers.map((customer) => (
-                                    <SelectItem key={customer.id} value={customer.id.toString()}>{customer.name}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        <Select onValueChange={(value) => setNewOrder({ ...newOrder, productId: value })}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select Product" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {productTypes.map((product) => (
-                                    product.value === 'separator' ? (
-                                        <SelectSeparator key={product.value} />
-                                    ) : (
-                                        <SelectItem key={product.value} value={product.value}>{product.label}</SelectItem>
-                                    )
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        <Input
-                            placeholder="Quantity"
-                            value={newOrder.quantity}
-                            onChange={(e) => setNewOrder({ ...newOrder, quantity: e.target.value })}
-                        />
-                        <Input
-                            type="date"
-                            placeholder="Order Date"
-                            value={newOrder.orderDate}
-                            onChange={(e) => setNewOrder({ ...newOrder, orderDate: e.target.value })}
-                        />
-                        <Input
-                            type="date"
-                            placeholder="Completion Date"
-                            value={newOrder.completionDate}
-                            onChange={(e) => setNewOrder({ ...newOrder, completionDate: e.target.value })}
-                        />
-                        <Input
-                            placeholder="Notes"
-                            value={newOrder.notes}
-                            onChange={(e) => setNewOrder({ ...newOrder, notes: e.target.value })}
-                        />
-                        <Button onClick={addOrder} className="col-span-2">Add Order</Button>
+                        <h3 className="text-xl font-semibold mt-6 mb-4">Создать заказ</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                            <Popover open={openCustomer} onOpenChange={setOpenCustomer}>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        role="combobox"
+                                        aria-expanded={openCustomer}
+                                        className="justify-between"
+                                    >
+                                        {newOrder.customerId
+                                            ? customers.find((customer) => customer.id.toString() === newOrder.customerId)?.name
+                                            : "Select customer..."}
+                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[200px] p-0">
+                                    <Command>
+                                        <CommandInput
+                                            placeholder="Search customer..."
+                                            onValueChange={(search) => {
+                                                const filtered = customers.filter((customer) =>
+                                                    customer.name.toLowerCase().includes(search.toLowerCase())
+                                                );
+                                                setFilteredCustomers(filtered);
+                                            }}
+                                        />
+                                        <CommandEmpty>No customer found.</CommandEmpty>
+                                        <CommandGroup>
+                                            <ScrollArea className="h-72">
+                                                {filteredCustomers.map((customer) => (
+                                                    <CommandItem
+                                                        key={customer.id}
+                                                        onSelect={() => {
+                                                            setNewOrder({ ...newOrder, customerId: customer.id.toString() })
+                                                            setOpenCustomer(false)
+                                                        }}
+                                                    >
+                                                        <Check
+                                                            className={cn(
+                                                                "mr-2 h-4 w-4",
+                                                                newOrder.customerId === customer.id.toString() ? "opacity-100" : "opacity-0"
+                                                            )}
+                                                        />
+                                                        {customer.name}
+                                                    </CommandItem>
+                                                ))}
+                                            </ScrollArea>
+                                        </CommandGroup>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
+
+                            <Popover open={openProduct} onOpenChange={setOpenProduct}>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        role="combobox"
+                                        aria-expanded={openProduct}
+                                        className="justify-between"
+                                    >
+                                        {newOrder.productId
+                                            ? products.find((product) => product.id.toString() === newOrder.productId)?.name
+                                            : "Select product..."}
+                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[200px] p-0">
+                                    <Command>
+                                        <CommandInput
+                                            placeholder="Search product..."
+                                            onValueChange={(search) => {
+                                                const filtered = products.filter((product) =>
+                                                    product.name.toLowerCase().includes(search.toLowerCase())
+                                                );
+                                                setFilteredProducts(filtered);
+                                            }}
+                                        />
+                                        <CommandEmpty>No product found.</CommandEmpty>
+                                        <CommandGroup>
+                                            <ScrollArea className="h-72">
+                                                {filteredProducts.map((product) => (
+                                                    <CommandItem
+                                                        key={product.id}
+                                                        onSelect={() => {
+                                                            setNewOrder({ ...newOrder, productId: product.id.toString() })
+                                                            setOpenProduct(false)
+                                                        }}
+                                                    >
+                                                        <Check
+                                                            className={cn(
+                                                                "mr-2 h-4 w-4",
+                                                                newOrder.productId === product.id.toString() ? "opacity-100" : "opacity-0"
+                                                            )}
+                                                        />
+                                                        {product.name}
+                                                    </CommandItem>
+                                                ))}
+                                            </ScrollArea>
+                                        </CommandGroup>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
+
+                            <Input
+                                placeholder="Quantity"
+                                type="number"
+                                value={newOrder.quantity}
+                                onChange={(e) => setNewOrder({ ...newOrder, quantity: e.target.value })}
+                            />
+                            <Input
+                                type="date"
+                                placeholder="Order Date"
+                                value={newOrder.orderDate}
+                                onChange={(e) => setNewOrder({ ...newOrder, orderDate: e.target.value })}
+                            />
+                            <Input
+                                type="date"
+                                placeholder="Completion Date"
+                                value={newOrder.completionDate}
+                                onChange={(e) => setNewOrder({ ...newOrder, completionDate: e.target.value })}
+                            />
+                            <Input
+                                placeholder="Notes"
+                                value={newOrder.notes}
+                                onChange={(e) => setNewOrder({ ...newOrder, notes: e.target.value })}
+                            />
+                            <Button onClick={addOrder} className="col-span-2">Создать</Button>
+                        </div>
                     </div>
                 </TabsContent>
             </Tabs>
+
         </div>
     )
 }

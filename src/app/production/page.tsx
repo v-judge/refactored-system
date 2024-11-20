@@ -34,19 +34,19 @@ export default function Production() {
 
     return (
         <div>
-            <h1 className="text-2xl font-bold mb-4">Production Department</h1>
+            <h1 className="text-2xl font-bold mb-4">Служба производства</h1>
 
-            <h2 className="text-xl font-semibold mt-6 mb-2">Production Orders</h2>
+            {/*<h2 className="text-xl font-semibold mt-6 mb-2">Production Orders</h2>*/}
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead>Order ID</TableHead>
-                        <TableHead>Customer</TableHead>
-                        <TableHead>Product</TableHead>
-                        <TableHead>Quantity</TableHead>
-                        <TableHead>Order Date</TableHead>
-                        <TableHead>Completion Date</TableHead>
-                        <TableHead>Status</TableHead>
+                        <TableHead>ID заказа</TableHead>
+                        <TableHead>Клиент</TableHead>
+                        <TableHead>Продукт</TableHead>
+                        <TableHead>Количество</TableHead>
+                        <TableHead>Дата заказа</TableHead>
+                        <TableHead>Дедлайн</TableHead>
+                        <TableHead>Статус</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>

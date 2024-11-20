@@ -9,15 +9,12 @@ pub fn run() {
           sql: r#"
             CREATE TABLE products (
               id INTEGER PRIMARY KEY AUTOINCREMENT,
-              name TEXT NOT NULL,
-              type TEXT NOT NULL
+              name TEXT UNIQUE NOT NULL
             );
 
             CREATE TABLE customers (
               id INTEGER PRIMARY KEY AUTOINCREMENT,
-              name TEXT NOT NULL,
-              email TEXT,
-              phone TEXT
+              name TEXT NOT NULL
             );
 
             CREATE TABLE orders (
