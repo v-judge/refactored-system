@@ -7,25 +7,20 @@ pub fn run() {
           version: 1,
           description: "create initial tables",
           sql: r#"
-            CREATE TABLE products (
+            CREATE TABLE IF NOT EXISTS products (
               id INTEGER PRIMARY KEY AUTOINCREMENT,
               name TEXT UNIQUE NOT NULL
             );
 
-            INSERT INTO products (name) VALUES
-            ('Сырые пиломатериалы'),
-            ('Сухие пиломатериалы'),
-            ('Строганные доски'),
-            ('Рейки'),
-            ('Брус'),
-            ('Пеллеты');
 
-            CREATE TABLE customers (
+            CREATE TABLE IF NOT EXISTS customers (
               id INTEGER PRIMARY KEY AUTOINCREMENT,
               name TEXT NOT NULL
             );
 
-            CREATE TABLE orders (
+
+
+            CREATE TABLE IF NOT EXISTS orders (
               id INTEGER PRIMARY KEY AUTOINCREMENT,
               customer_id INTEGER,
               product_id INTEGER,
@@ -60,3 +55,15 @@ pub fn run() {
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
+
+// INSERT OR IGNORE INTO CUSTOMERS (name) VALUES
+// ('Мэрия Москвы'),
+// ('Сколково');
+
+// INSERT INTO products (name) VALUES
+// ('Сырые пиломатериалы'),
+// ('Сухие пиломатериалы'),
+// ('Строганные доски'),
+// ('Рейки'),
+// ('Брус'),
+// ('Пеллеты');

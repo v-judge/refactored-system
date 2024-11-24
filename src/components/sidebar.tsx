@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Home, ShoppingCart, Factory, Cpu, Database } from 'lucide-react'
+import { Home, ShoppingCart, Factory, Cpu } from 'lucide-react'
 
 export function Sidebar() {
     return (
@@ -20,10 +20,6 @@ export function Sidebar() {
                 <Link href="/technology" className="flex items-center space-x-2 p-2 hover:bg-gray-200 rounded">
                     <Cpu className="w-5 h-5" />
                     <span>Служба технолога</span>
-                </Link>
-                <Link href="/tables" className="text-red-600 flex items-center space-x-2 p-2 hover:bg-gray-200 rounded">
-                    {/*<Database className="w-5 h-5" />*/}
-                    <span>Удалить...</span>
                 </Link>
             </nav>
         </aside>

@@ -13,7 +13,7 @@
     "windows": [
       {
         "title": "РосПил",
-        "width": 1100,
+        "width": 1300,
         "height": 800,
         "resizable": true,
         "fullscreen": false
@@ -32,7 +32,21 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "windows": {
+      "allowDowngrades": true,
+      "certificateThumbprint": null,
+      "digestAlgorithm": null,
+      "nsis": null,
+      "signCommand": null,
+      "timestampUrl": null,
+      "tsp": false,
+      "webviewInstallMode": {
+        "silent": true,
+        "type": "offlineInstaller"
+      },
+      "wix": null
+    }
   },
   "plugins": {
     "sql": {

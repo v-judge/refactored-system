@@ -1,6 +1,6 @@
 import Database from '@tauri-apps/plugin-sql';
 
-let db: Database | null = null;
+let db = null;
 
 export async function getDatabase() {
     if (!db) {
@@ -10,12 +10,12 @@ export async function getDatabase() {
     return db;
 }
 
-export async function executeQuery(query: string, params: any[] = []) {
+export async function executeQuery(query, params = []) {
     const db = await getDatabase();
     return await db.execute(query, params);
 }
 
-export async function selectQuery(query: string, params: any[] = []) {
+export async function selectQuery(query, params = []) {
     const db = await getDatabase();
     return await db.select(query, params);
 }

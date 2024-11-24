@@ -25,12 +25,10 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
-import { PencilIcon, TrashIcon, XCircleIcon } from "lucide-react";
+import { PencilIcon, TrashIcon } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 export default function Sales() {
@@ -63,9 +61,8 @@ export default function Sales() {
   }, []);
 
   useEffect(() => {
-    // Save active tab to localStorage whenever it changes
     localStorage.setItem("activeTab", activeTab);
-  }, [activeTab]);
+  }, [activeTab]); //! DOESN't WORK
 
   const fetchCustomers = async () => {
     const fetchedCustomers = await selectQuery("SELECT * FROM customers");
@@ -160,13 +157,13 @@ export default function Sales() {
   };
 
   const updateOrder = async () => {
-    const today = new Date();
+    const orderDate = new Date(editingOrder.orderDate);
     const completionDate = new Date(editingOrder.completion_date);
 
     if (completionDate <= today) {
       toast({
         title: "Ошибка",
-        description: "Дедлайн должен быть позже текущей даты.",
+        description: "Дедлайн должен быть позже даты регистрации.",
         variant: "destructive",
       });
       return;
@@ -205,6 +202,16 @@ export default function Sales() {
         variant: "destructive",
       });
       return;
+    }
+
+    if (editingOrder.quantity <= 0)
+    {
+      toast({
+        description: "Количество должно быть больше нуля",
+        variant: "destructive"
+      });
+      return;
+
     }
 
     // Proceed with update
@@ -399,7 +406,7 @@ export default function Sales() {
                               }
                               size="sm"
                             >
-                              Согласовано
+                              Согласовать
                             </Button>
                           )}
                         {order.status === "Согласовано с клиентом" && (
@@ -412,7 +419,7 @@ export default function Sales() {
                             }
                             size="sm"
                           >
-                            В производстве
+                            В производство
                           </Button>
                         )}
                         {order.status === "Принято в производство" && (
